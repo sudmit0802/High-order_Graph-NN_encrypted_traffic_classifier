@@ -1,3 +1,0 @@
-ID,Source Port,Destination Port,Sequence Number,Acknowledgment Number,Data Offset,Reserved,Flags,Window Size,Checksum,Urgent Pointer,next_packages,Session,Label
-703,443,40536,2621848098,1882403277,8,0,24,23168,33865,0,[16],300,outlook
-704,40536,443,1882403277,2621849503,8,0,16,65535,41638,0,[17],300,outlook

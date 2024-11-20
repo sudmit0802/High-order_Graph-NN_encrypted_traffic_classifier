@@ -5,7 +5,7 @@ import csv
 from scapy.all import *
 from tqdm import tqdm
 
-ROOT_DIR = "C:\\Users\\sudmi\\Desktop\\ProfistMAC-A-Protocol-Finite-State-Machine-Classifier-via-Graph-Representation"
+ROOT_DIR = "C:\\Users\\sudmit\\Desktop\\High-order_Graph-NN_encrypted_traffic_classifier"
 
 main_csv = os.path.join(ROOT_DIR, "workdir", "mainCSV", "main.csv")
 session_csv_dir = os.path.join(ROOT_DIR, "workdir", "test", "raw", "session")

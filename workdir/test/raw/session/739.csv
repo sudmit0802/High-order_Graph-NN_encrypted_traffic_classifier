@@ -1,4 +1,0 @@
-ID,Source Port,Destination Port,Sequence Number,Acknowledgment Number,Data Offset,Reserved,Flags,Window Size,Checksum,Urgent Pointer,next_packages,Session,Label
-7049,3724,56266,3853619943,3853606476,8,0,17,10136,50481,0,"[16, 17]",739,wow
-7050,56266,3724,3853606476,3853619944,8,0,17,10136,50114,0,"[16, 17]",739,wow
-7051,3724,56266,3853619944,3853606477,8,0,16,10136,49817,0,"[24, 17]",739,wow

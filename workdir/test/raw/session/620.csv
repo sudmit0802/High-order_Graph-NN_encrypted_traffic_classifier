@@ -1,4 +1,0 @@
-ID,Source Port,Destination Port,Sequence Number,Acknowledgment Number,Data Offset,Reserved,Flags,Window Size,Checksum,Urgent Pointer,next_packages,Session,Label
-3978,80,42687,3539436134,1442453379,8,0,16,8688,36638,0,"[16, 24]",620,weibo
-3979,80,42687,3539437582,1442453379,8,0,24,8688,32016,0,[16],620,weibo
-3980,42687,80,1442453379,3539439030,8,0,16,65160,24126,0,"[16, 24]",620,weibo

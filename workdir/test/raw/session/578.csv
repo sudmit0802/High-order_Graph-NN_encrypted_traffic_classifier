@@ -1,3 +1,0 @@
-ID,Source Port,Destination Port,Sequence Number,Acknowledgment Number,Data Offset,Reserved,Flags,Window Size,Checksum,Urgent Pointer,next_packages,Session,Label
-3339,42978,443,3089027276,1153976895,8,0,24,40544,37228,0,[16],578,torrent
-3340,443,42978,1153976895,3089028681,8,0,16,49232,19914,0,[],578,torrent

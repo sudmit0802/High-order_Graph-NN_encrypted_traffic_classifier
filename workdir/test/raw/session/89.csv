@@ -1,3 +1,0 @@
-ID,Source Port,Destination Port,Sequence Number,Acknowledgment Number,Data Offset,Reserved,Flags,Window Size,Checksum,Urgent Pointer,next_packages,Session,Label
-256,443,1819,90354573,81042184,8,0,24,30408,19876,0,[16],89,gmail
-257,1819,443,81042184,90355978,8,0,16,28960,29845,0,"[17, 16, 24]",89,gmail

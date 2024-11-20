@@ -1,3 +1,0 @@
-ID,Source Port,Destination Port,Sequence Number,Acknowledgment Number,Data Offset,Reserved,Flags,Window Size,Checksum,Urgent Pointer,next_packages,Session,Label
-473,1386,3306,3625385884,1607319082,8,0,24,7240,55879,0,[16],188,mysql
-474,3306,1386,1607319082,3625385947,8,0,16,7240,22216,0,[24],188,mysql

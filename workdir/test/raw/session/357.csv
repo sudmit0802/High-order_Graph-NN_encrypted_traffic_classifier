@@ -1,3 +1,0 @@
-ID,Source Port,Destination Port,Sequence Number,Acknowledgment Number,Data Offset,Reserved,Flags,Window Size,Checksum,Urgent Pointer,next_packages,Session,Label
-811,443,50359,1485484150,1485435704,8,0,24,18824,39750,0,[16],357,skype
-812,50359,443,1485435704,1485484784,8,0,16,18824,35553,0,[],357,skype

@@ -1,3 +1,0 @@
-ID,Source Port,Destination Port,Sequence Number,Acknowledgment Number,Data Offset,Reserved,Flags,Window Size,Checksum,Urgent Pointer,next_packages,Session,Label
-2792,139,45014,4176747015,1632510468,8,0,24,13032,58871,0,"[24, 16]",482,smb
-2793,45014,139,1632510468,4176747076,8,0,16,13032,38431,0,"[24, 16, 17]",482,smb
