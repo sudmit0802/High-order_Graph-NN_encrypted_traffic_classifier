@@ -1,3 +1,4 @@
+import json
 from sklearn.metrics import confusion_matrix, classification_report
 import seaborn as sn
 import seaborn as sns
@@ -16,12 +17,9 @@ import torch.optim as optim
 import os
 
 
-LR = 0.0001
-STEP_SIZE = 8
-EPOCHS = 100
-
-y_pred = []
-y_true = []
+LR = 0.005
+STEP_SIZE = 12
+EPOCHS = 250
 
 class NEW(InMemoryDataset):
 
@@ -107,38 +105,7 @@ class NEW(InMemoryDataset):
         torch.save((data, slices), self.processed_paths[0])
 
 
-dataset = NEW(root='')
-dataset = dataset.shuffle()
 
-labels = dataset.data.y
-train_ratio = 0.9
-train_indices = []
-test_indices = []
-
-
-
-for label in set(labels.numpy()):
-    label_indices = (labels == label).nonzero(as_tuple=False).view(-1)
-    train_size = int(len(label_indices) * train_ratio)
-    test_size = len(label_indices) - train_size
-    chosen_indices = np.random.permutation(label_indices)
-    train_indices.extend(chosen_indices[:train_size].tolist())
-    test_indices.extend(chosen_indices[train_size:].tolist())
-
-train_dataset = dataset.index_select(torch.tensor(train_indices))
-test_dataset = dataset.index_select(torch.tensor(test_indices))
-
-train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
-
-print(f'Number of training graphs: {len(train_dataset)}')
-print(f'Number of test graphs: {len(test_dataset)}')
-
-sampler = ImbalancedSampler(train_dataset)
-
-
-print(f'Number of training classes: {train_dataset.num_classes}')
-print(f'Number of test classes : {test_dataset.num_classes}')
 
 class GCN(torch.nn.Module):
     def __init__(self):
@@ -206,21 +173,7 @@ class GCN(torch.nn.Module):
         return x
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = GCN()
 
-
-
-criterion = torch.nn.CrossEntropyLoss() 
-optimizer = optim.Adam(model.parameters(), lr=LR, betas=(0.9, 0.99), eps=1e-9)
-scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=STEP_SIZE, gamma=0.90)
-
-hist = {
-"epoch": [],
-"train_loss": [],
-"test_loss": [],
-"learning_rate": [],
-}
 
 def print_losses(hist):
     s =  "| epoch | train_loss | test_loss | learning_rate |\n"
@@ -231,7 +184,7 @@ def print_losses(hist):
     print(s)
 
 
-def run_epoch(dataloader, is_training=False):
+def run_epoch(dataloader, optimizer, criterion, scheduler, is_training=False):
     epoch_loss = 0
     
     if is_training:
@@ -265,12 +218,24 @@ def run_epoch(dataloader, is_training=False):
 
 
 
-def train():
+def train(train_loader, test_loader):
+
+    hist = {
+    "epoch": [],
+    "train_loss": [],
+    "test_loss": [],
+    "learning_rate": [],
+    }
+    
+    criterion = torch.nn.CrossEntropyLoss() 
+    optimizer = optim.Adam(model.parameters(), lr=LR, betas=(0.9, 0.99), eps=1e-9)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=STEP_SIZE, gamma=0.90)
+
     for epoch in range(EPOCHS):
         print_losses(hist)
         print('Epoch[{}/{}]'.format(epoch + 1, EPOCHS))
-        loss_train, lr_train = run_epoch(train_loader, is_training=True)
-        loss_val, _ = run_epoch(test_loader)
+        loss_train, lr_train = run_epoch(train_loader, optimizer, criterion, scheduler, is_training=True)
+        loss_val, _ = run_epoch(test_loader, optimizer, criterion, scheduler)
 
         hist["epoch"].append(epoch + 1)
         hist["train_loss"].append(loss_train)
@@ -280,12 +245,12 @@ def train():
         print_losses(hist)
 
 
-def test():
+def test(loader):
+
     y_pred = []
     y_true = []
 
-    # iterate over test data
-    for data in test_loader:
+    for data in loader:
 
         model.to(device)
         data.to(device)
@@ -300,7 +265,6 @@ def test():
         label = data.y.cpu().numpy()
         y_true.extend(label)
 
-    # constant for classes
     classes = ('Gmail', 'MySQL', 'Outlook', "Skype", "SMB", "BitTorrent", "Weibo", "WorldOfWarcraft")
 
     # Build confusion matrix
@@ -318,5 +282,97 @@ def test():
     plt.savefig('data.png')
     print(classification_report(y_true, y_pred, target_names=classes, digits=4))
 
-train()
-test()
+def random_slicing(train_ratio, labels):
+    train_indices, test_indices = [], []
+    for label in set(labels.numpy()):
+        label_indices = (labels == label).nonzero(as_tuple=False).view(-1)
+        train_size = int(len(label_indices) * train_ratio)
+        chosen_indices = np.random.permutation(label_indices)
+        train_indices.extend(chosen_indices[:train_size].tolist())
+        test_indices.extend(chosen_indices[train_size:].tolist())
+
+    return train_indices, test_indices
+
+def external_slicing(filepath):
+    try:
+        with open(filepath, 'r') as json_file:
+            data = json.load(json_file)
+            return data['train_indices'], data['test_indices']
+    except (json.JSONDecodeError, KeyError) as e:
+        print(f"Error loading slicing file: {e}")
+        raise
+
+
+def save_slicing(filepath, train_indices, test_indices):
+
+    indices_data = {
+    "train_indices": train_indices,
+    "test_indices": test_indices
+    }
+
+    with open(filepath, "w") as json_file:
+        json.dump(indices_data, json_file)
+
+if __name__ == '__main__':
+
+    dataset = NEW(root='')
+    
+    train_ratio = 0.8
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    model_filename = "model.pth"
+    indices_filename = "indices.json"
+
+    model = GCN()
+
+    if(os.path.exists(model_filename) and os.path.exists(indices_filename)):
+
+        train_indices, test_indices = external_slicing(indices_filename)
+
+        train_dataset = dataset.index_select(torch.tensor(train_indices))
+        test_dataset = dataset.index_select(torch.tensor(test_indices))
+
+        train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
+        test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
+
+        print(f'Number of training graphs: {len(train_dataset)}')
+        print(f'Number of test graphs: {len(test_dataset)}')
+        print(f'Number of training classes: {train_dataset.num_classes}')
+        print(f'Number of test classes : {test_dataset.num_classes}')
+
+        sampler = ImbalancedSampler(train_dataset)
+
+        state_dict = torch.load(model_filename, map_location=device)
+
+        model.load_state_dict(state_dict)
+
+        test(test_loader)
+
+    else:
+        
+        dataset = dataset.shuffle()
+
+        train_indices, test_indices = random_slicing(train_ratio, dataset.y)
+        
+        train_dataset = dataset.index_select(torch.tensor(train_indices))
+        test_dataset = dataset.index_select(torch.tensor(test_indices))
+        
+        train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
+        test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
+
+        print(f'Number of training graphs: {len(train_dataset)}')
+        print(f'Number of test graphs: {len(test_dataset)}')
+
+        sampler = ImbalancedSampler(train_dataset)
+
+        print(f'Number of training classes: {train_dataset.num_classes}')
+        print(f'Number of test classes : {test_dataset.num_classes}')
+
+        train(train_loader, test_loader)
+        test(test_loader)
+
+        save_slicing(indices_filename, train_indices, test_indices)
+
+        torch.save(model.state_dict(), model_filename)
+
