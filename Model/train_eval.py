@@ -16,9 +16,9 @@ import torch.optim as optim
 import os
 
 
-LR = 0.001
+LR = 0.0001
 STEP_SIZE = 8
-EPOCHS = 50
+EPOCHS = 100
 
 y_pred = []
 y_true = []
@@ -111,7 +111,7 @@ dataset = NEW(root='')
 dataset = dataset.shuffle()
 
 labels = dataset.data.y
-train_ratio = 0.8
+train_ratio = 0.9
 train_indices = []
 test_indices = []
 
@@ -305,11 +305,12 @@ def test():
 
     # Build confusion matrix
     cf_matrix = confusion_matrix(y_true, y_pred)
-    df_cm = pd.DataFrame(cf_matrix / cf_matrix.astype(float).sum(axis=1), index=[i for i in classes], columns=[i for i in classes])
-    plt.figure(figsize=(12, 12), dpi=100)
-    plt.title('Confusion matrix for VPN classes')
+    cf_matrix_normalized = cf_matrix.astype(float) / cf_matrix.sum(axis=1, keepdims=True).clip(min=1e-9)
+    df_cm = pd.DataFrame(cf_matrix_normalized, index=[i for i in classes], columns=[i for i in classes])
+    plt.figure(figsize=(15, 15), dpi=100)
+    plt.title('Confusion matrix for Benign classes')
     sns.set(font_scale=2.5)
-    sn.heatmap(df_cm, annot=True, annot_kws={'size': 28}, fmt='.3f')
+    sn.heatmap(df_cm, annot=True, annot_kws={'size': 18}, fmt='.3f', cmap='Greens')
     plt.xlabel('Predicted')
     plt.xticks(rotation=45)
     plt.ylabel('True')
