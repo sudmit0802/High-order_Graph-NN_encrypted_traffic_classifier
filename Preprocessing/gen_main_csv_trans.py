@@ -18,9 +18,7 @@ label_csv = os.path.join(ROOT_DIR, "workdir", "test", "raw", "graphid2label.csv"
 ATTR_HEADER = ["ID", "Source Port", "Destination Port", "Sequence Number", "Acknowledgment Number",
                "Data Offset", "Reserved", "Flags", "Window Size", "Checksum", "Urgent Pointer"]
 
-MAIN_HEADER = ["ID", "Source Port", "Destination Port", "Sequence Number", "Acknowledgment Number",
-               "Data Offset", "Reserved", "Flags", "Window Size", "Checksum", "Urgent Pointer",
-               "next_packages", "Session", "Label"]
+MAIN_HEADER = ATTR_HEADER + ["next_packages", "Session", "Label"]
 
 GRAPH_HEADER = ["node_id", "graph_id"]
 LABEL_HEADER = ["graph_no", "label"]
