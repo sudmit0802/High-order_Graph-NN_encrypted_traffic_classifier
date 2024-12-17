@@ -8,13 +8,14 @@ import matplotlib.pyplot as plt
 from torch.nn import  BatchNorm1d
 import torch
 import torch.nn.functional as F
-from torch_geometric.loader import DataLoader, ImbalancedSampler
+from torch_geometric.loader import DataLoader
 from torch_geometric.nn import  TopKPooling,  GraphConv
 from torch_geometric.nn import global_mean_pool as gap, global_max_pool as gmp
 from torch_geometric.data import InMemoryDataset, Data
 from tqdm import tqdm
 import torch.optim as optim
 import os
+import sys
 
 
 LR = 0.005
@@ -316,19 +317,18 @@ def save_slicing(filepath, train_indices, test_indices):
 if __name__ == '__main__':
 
     dataset = NEW(root='')
-    
-    train_ratio = 0.8
-
+    model = GCN()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model_filename = "model.pth"
     indices_filename = "indices.json"
 
-    model = GCN()
+    if len(sys.argv) > 1:
 
-    if(os.path.exists(model_filename) and os.path.exists(indices_filename)):
+        train_ratio = 0.1
+        dataset = dataset.shuffle()
 
-        train_indices, test_indices = external_slicing(indices_filename)
+        train_indices, test_indices = random_slicing(train_ratio, dataset.y)
 
         train_dataset = dataset.index_select(torch.tensor(train_indices))
         test_dataset = dataset.index_select(torch.tensor(test_indices))
@@ -336,21 +336,35 @@ if __name__ == '__main__':
         train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
         test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
 
-        print(f'Number of training graphs: {len(train_dataset)}')
-        print(f'Number of test graphs: {len(test_dataset)}')
-        print(f'Number of training classes: {train_dataset.num_classes}')
-        print(f'Number of test classes : {test_dataset.num_classes}')
-
-        sampler = ImbalancedSampler(train_dataset)
-
         state_dict = torch.load(model_filename, map_location=device)
 
         model.load_state_dict(state_dict)
 
         test(test_loader)
 
+        print("Exitting...")
+        exit()
+
+    
+
+    if(os.path.exists(model_filename) and os.path.exists(indices_filename)):
+
+        _, test_indices = external_slicing(indices_filename)
+        test_dataset = dataset.index_select(torch.tensor(test_indices))
+        test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
+
+        print(f'Number of test graphs: {len(test_dataset)}')
+        print(f'Number of test classes : {test_dataset.num_classes}')
+
+        state_dict = torch.load(model_filename, map_location=device)
+        model.load_state_dict(state_dict)
+
+        test(test_loader)
+
     else:
         
+        train_ratio = 0.8
+
         dataset = dataset.shuffle()
 
         train_indices, test_indices = random_slicing(train_ratio, dataset.y)
@@ -363,8 +377,6 @@ if __name__ == '__main__':
 
         print(f'Number of training graphs: {len(train_dataset)}')
         print(f'Number of test graphs: {len(test_dataset)}')
-
-        sampler = ImbalancedSampler(train_dataset)
 
         print(f'Number of training classes: {train_dataset.num_classes}')
         print(f'Number of test classes : {test_dataset.num_classes}')
