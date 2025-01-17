@@ -18,9 +18,9 @@ import os
 import sys
 
 
-LR = 0.005
-STEP_SIZE = 12
-EPOCHS = 250
+LR = 0.005 # 0.005
+STEP_SIZE = 12 # 12
+EPOCHS = 3 #250
 
 class NEW(InMemoryDataset):
 
@@ -229,8 +229,8 @@ def train(train_loader, test_loader):
     }
     
     criterion = torch.nn.CrossEntropyLoss() 
-    optimizer = optim.Adam(model.parameters(), lr=LR, betas=(0.9, 0.99), eps=1e-9)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=STEP_SIZE, gamma=0.90)
+    optimizer = optim.Adam(model.parameters(), lr=LR, betas=(0.9, 0.99), eps=1e-9) # 0.9 - 0.99, 1e-9
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=STEP_SIZE, gamma=0.90) # 0.9
 
     for epoch in range(EPOCHS):
         print_losses(hist)
@@ -363,7 +363,7 @@ if __name__ == '__main__':
 
     else:
         
-        train_ratio = 0.8
+        train_ratio = 0.8 # 0.8
 
         dataset = dataset.shuffle()
 
